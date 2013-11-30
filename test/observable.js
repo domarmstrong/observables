@@ -40,7 +40,7 @@ describe('ob.Observable', function () {
 
     describe('subscribe', function () {
         o = new ob.Observable();
-        it('Should accept a function only', function () {
+        it('Requires a function to be passed in', function () {
             o.subscribe(function () {});
             assert.throw(o.subscribe.bind(null, 'a'), Error, 'Subscribe only accepts functions');
             assert.throw(o.subscribe.bind(null, 5), Error, 'Subscribe only accepts functions');
@@ -48,20 +48,56 @@ describe('ob.Observable', function () {
             assert.throw(o.subscribe.bind(null, []), Error, 'Subscribe only accepts functions');
             assert.throw(o.subscribe.bind(null, {}), Error, 'Subscribe only accepts functions');
         });
+        it('Can be name spaced for easy reference', function () {
+            o.subscribe('sub', function () {});
+        });
+        it('Can be unsubscribed by name', function () {
+            o = new ob.Observable();
+            o.subscribe('sub', function () { assert.fail(); });
+            o.unsubscribe('sub');
+            o(5);
+        });
+        it('Should only allow one subscriber per namespace', function () {
+            o = new ob.Observable();
+            o.subscribe('sub', function () { assert.fail(); });
+            o.subscribe('sub', function () {});
+            o.notifyChange();
+            assert.lengthOf(o._namedSubscribers, 1);
+            assert.lengthOf(o._subscribers, 1);
+        });
         it('Should be stored in an array of _subscribers on its observable', function () {
             function x() {};
             o.subscribe(x);
             assert(o._subscribers.indexOf(x) !== -1, 'subscriber not found in _subscribers');
         });
-        it('Should be called every time its observables value changes', function () {
-            var count = 0;
-            o.subscribe(function () {
-                count += 1;
-            });
-            assert.equal(count, 0);
-            o(5);
-            assert.equal(count, 1);
+    });
+    it('Should call its subscribers with its value when its value changes', function () {
+        var val;
+        o = new ob.Observable();
+        o.subscribe(function (v) {
+            val = v;
         });
+        assert.equal(val, undefined);
+        o(5);
+        assert.equal(val, 5);
+    });
+    it('Should not call its subscribers if its value does not change', function () {
+        var count = 0;
+        o = new ob.Observable(4);
+        o.subscribe(function (v) {
+            count++;
+        });
+        assert.equal(count, 0);
+        o(4);
+        assert.equal(count, 0);
+    });
+    it('Should accept a custom equality comparison function', function () {
+        o = new ob.Observable([1,2,3]);
+        o.equals = function (a, b) {
+            return a.length == b.length;
+        };
+        o.subscribe(function () { assert.fail('Not equal'); });
+        o([5,6,7]);
     });
 });
 
