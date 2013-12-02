@@ -111,6 +111,7 @@ module.exports = (function () {
         return this.value;
     };
 
+
     /**
     * var c = new Computed( function () {} );
     * returns a computed object that inherits from Subscribable
