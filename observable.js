@@ -1,22 +1,16 @@
 "use strict";
 
 module.exports = (function () {
-    var tracking;
-    var _ = {
-        'observables': [],
-        'collectDependencies': function ( computed ) {
-            tracking = computed;
-        },
-        'stopDependencyCollection': function () {
-            tracking = null;
-        },
-        'called': function ( observable ) {
-            if (tracking.dependencies.indexOf( observable ) === -1) {
-                tracking.dependencies.push( observable );
-                observable.subscribe( tracking.run.bind( tracking ) );
-            }
+    /**
+     * Used for tracking Computeds dependencies
+     */
+    function called( observable ) {
+        var tracking = Computed.tracking;
+        if (tracking.dependencies.indexOf( observable ) === -1) {
+            tracking.dependencies.push( observable );
+            observable.subscribe( tracking.run.bind( tracking ) );
         }
-    };
+    }
 
     /**
      * var s = new Subscribable();
@@ -102,7 +96,6 @@ module.exports = (function () {
     Observable.prototype.init = function ( initValue ) {
         Subscribable.prototype.init.call( this );
         this.value = initValue;
-        _.observables.push( this );
     };
     Observable.prototype.equals = equals;
     Observable.prototype.set = function ( v ) {
@@ -112,8 +105,8 @@ module.exports = (function () {
         return this;
     };
     Observable.prototype.get = function () {
-        if (tracking) {
-            _.called( this );
+        if (Computed.tracking) {
+            called( this );
         }
         return this.value;
     };
@@ -131,17 +124,16 @@ module.exports = (function () {
         }
         this.init( fn );
     }
+    Computed.tracking = null;
     // Inherit from Subscribable
     Computed.prototype = Object.create(Subscribable.prototype);
     Computed.prototype.init = function ( fn ) {
         Subscribable.prototype.init.call( this );
         this.fn = fn;
         this.dependencies = [];
-        _.collectDependencies( this );
+        Computed.tracking = this;
         this.value = fn();
-        _.stopDependencyCollection();
-
-        _.observables.push( this );
+        Computed.tracking = null;
     };
     Computed.prototype.equals = equals;
     Computed.prototype.run = function () {
@@ -152,8 +144,8 @@ module.exports = (function () {
         return this;
     };
     Computed.prototype.get = function () {
-        if (tracking) {
-            _.called( this );
+        if (Computed.tracking) {
+            called( this );
         }
         return this.fn();
     };

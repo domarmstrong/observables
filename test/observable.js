@@ -89,7 +89,7 @@ describe('Subscribable', testSubscribable.bind(Subscribable));
 
 describe('Observable', function () {
     it('Should inherit from Subscribable and should pass all Subscribable tests', function () {
-        testSubscribable.call(Observable); 
+        testSubscribable.call(Observable);
     });
     it('Should return an instance of Observable', function () {
         assert.instanceOf(new Observable(), Observable);
@@ -148,7 +148,7 @@ describe('Observable', function () {
 
 describe('Computed', function () {
     it('Should inherit from Subscribable and should pass all Subscribable tests', function () {
-        testSubscribable.call(Computed); 
+        testSubscribable.call(Computed);
     });
     it('Should be an instance of Computed', function () {
         assert.instanceOf(new Computed( function () {} ), Computed);
@@ -178,7 +178,7 @@ describe('Computed', function () {
         var o = new Observable();
         var co = new Computed( function () {} );
         var c = new Computed(function () {
-            o.get(); 
+            o.get();
             co.get();
         });
         assert(c.dependencies.indexOf(o) !== -1, 'Observable has not been noted as a dependency');
@@ -187,7 +187,7 @@ describe('Computed', function () {
     it('Should not create duplicate dependencies', function () {
         var o = new Observable();
         var c = new Computed(function () {
-            o.get(); 
+            o.get();
             o.get();
         });
         assert.lengthOf(c.dependencies, 1);
@@ -196,7 +196,7 @@ describe('Computed', function () {
         var hasRun;
         var o = new Observable();
         var c = new Computed(function () {
-            o.get(); 
+            o.get();
             hasRun = true;
         });
         hasRun = false;
